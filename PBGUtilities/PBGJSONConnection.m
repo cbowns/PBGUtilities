@@ -5,6 +5,7 @@
 //
 
 #import "PBGJSONConnection.h"
+#import "JSONKit.h"
 
 @implementation PBGJSONConnection
 
@@ -33,7 +34,7 @@ static BOOL logging = NO;
 		}
         
         NSError *jsonError = nil;
-        id responseObject = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonError];
+        id responseObject = [responseData objectFromJSONDataWithParseOptions:JKParseOptionNone error:&jsonError];
         
         if (responseObject == nil && jsonError) {
 			NSLog(@"ERROR: GET JSON Reading error: %@", [jsonError localizedDescription]);
@@ -41,6 +42,9 @@ static BOOL logging = NO;
 				errorBlock(jsonError);
 			});
 			return;
+		}
+		if (responseObject == nil) {
+			NSLog(@"ERROR: GET JSON object conversion failed");
 		}
         
         if (logging) {
@@ -58,11 +62,22 @@ static BOOL logging = NO;
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         
         NSError *jsonError = nil;
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:inObj options:0 error:&jsonError];
-        
+		NSData *jsonData = nil;
+
+		if ([[inObj class] isSubclassOfClass:[NSArray class]]) {
+			NSArray *inObject = (NSArray *)inObj;
+			jsonData = [inObject JSONDataWithOptions:JKSerializeOptionNone error:&jsonError];
+		} else if ([[inObj class] isSubclassOfClass:[NSDictionary class]]) {
+			NSDictionary *inObject = (NSDictionary *)inObj;
+			jsonData = [inObject JSONDataWithOptions:JKSerializeOptionNone error:&jsonError];
+		}
+
         if (jsonData == nil && jsonError) {
 			NSLog(@"ERROR: POST JSON Writing error: %@", [jsonError localizedDescription]);
 			return;
+		}
+		if (jsonData == nil) {
+			NSLog(@"ERROR: POST JSON object conversion failed");
 		}
         
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:inURL];
@@ -84,13 +99,17 @@ static BOOL logging = NO;
 		}
         
         jsonError = nil;
-        id responseObject = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonError];
+        id responseObject = [responseData objectFromJSONDataWithParseOptions:JKParseOptionNone error:&jsonError];
         
         if (responseObject == nil && jsonError) {
 			NSLog(@"ERROR: POST JSON Reading error: %@", [jsonError localizedDescription]);
 			return;
 		}
-        
+
+		if (responseObject == nil) {
+			NSLog(@"ERROR: POST JSON object conversion failed");
+		}
+
         if (logging) {
             NSLog(@"PBGJSONINTERFACELOGGING: Response Object for POST: %@\n\n", responseObject);
         }
@@ -119,12 +138,15 @@ static BOOL logging = NO;
 			return;
 		}
 
-		NSError *jsonError           = nil;
-		id responseObject            = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonError];
+		NSError *jsonError = nil;
+		id responseObject = [responseData objectFromJSONDataWithParseOptions:JKParseOptionNone error:&jsonError];
 
 		if (responseObject == nil && jsonError) {
 			NSLog(@"ERROR: DELETE JSON Reading error: %@", [jsonError localizedDescription]);
 			return;
+		}
+		if (responseObject == nil) {
+			NSLog(@"ERROR: DELETE JSON object conversion failed");
 		}
 
 		if (logging) {
