@@ -14,7 +14,7 @@ static BOOL logging = YES;
 static BOOL logging = NO;
 #endif
 
-+ (void)getFromURL:(NSURL *)inURL handleJSONResponseWithBlock:(void (^)(id responseObj))inBlock;
++ (void)getFromURL:(NSURL *)inURL handleJSONResponseWithBlock:(void (^)(id responseObj))inBlock handleErrorWithBlock:(void (^)(NSError *error))errorBlock;
 {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         
@@ -37,6 +37,9 @@ static BOOL logging = NO;
         
         if (responseObject == nil && jsonError) {
 			NSLog(@"ERROR: GET JSON Reading error: %@", [jsonError localizedDescription]);
+			dispatch_async(dispatch_get_main_queue(), ^{
+				errorBlock(jsonError);
+			});
 			return;
 		}
         
@@ -50,7 +53,7 @@ static BOOL logging = NO;
     });
 }
 
-+ (void)postToURL:(NSURL *)inURL withJSONSerializableObject:(id)inObj handleJSONResponseWithBlock:(void (^)(id responseObj))inBlock;
++ (void)postToURL:(NSURL *)inURL withJSONSerializableObject:(id)inObj handleJSONResponseWithBlock:(void (^)(id responseObj))inBlock handleErrorWithBlock:(void (^)(NSError *error))errorBlock;
 {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         
@@ -74,6 +77,9 @@ static BOOL logging = NO;
         
         if (responseData == nil && error) {
 			NSLog(@"ERROR: POST connection error: %@", [error localizedDescription]);
+			dispatch_async(dispatch_get_main_queue(), ^{
+				errorBlock(error);
+			});
 			return;
 		}
         

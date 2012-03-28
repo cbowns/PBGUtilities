@@ -16,8 +16,8 @@
 
 @interface PBGJSONConnection : NSObject
 
-+ (void)getFromURL:(NSURL *)inURL handleJSONResponseWithBlock:(void (^)(id responseObj))inBlock;
-+ (void)postToURL:(NSURL *)inURL withJSONSerializableObject:(id)inObj handleJSONResponseWithBlock:(void (^)(id responseObj))inBlock;
++ (void)getFromURL:(NSURL *)inURL handleJSONResponseWithBlock:(void (^)(id responseObj))inBlock handleErrorWithBlock:(void (^)(NSError *error))errorBlock;
++ (void)postToURL:(NSURL *)inURL withJSONSerializableObject:(id)inObj handleJSONResponseWithBlock:(void (^)(id responseObj))inBlock handleErrorWithBlock:(void (^)(NSError *error))errorBlock;
 + (void)deleteAtURL:(NSURL *)inURL handleJSONResponseWithBlock:(void (^)(id responseObj))inBlock;
 
 @end
